@@ -5,11 +5,13 @@ import com.example.ticket.models.Ticket;
 import com.example.ticket.models.User;
 import com.example.ticket.services.CrudUtils;
 import lombok.AllArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
@@ -46,13 +48,15 @@ public class TicketController {
         // Вызываем сервисный метод, передавая параметры фильтрации и пагинации
         return crudUtils.getAllTicketWithFilter(page, pageSize, dateTimeFilter, departureFilter, destinationFilter, carrierFilter);
     }
+
+
     @GetMapping("getByData")
     public List<Ticket> getAllTicketsByDate(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
-            @RequestParam(value = "dateTimeFilter", required = false) LocalDate dateTimeFilter1){
-
-        return crudUtils.getTicketByData(dateTimeFilter1);
+            @RequestParam(value = "dateTimeFilter")  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateAndTime) {
+        System.out.println("from controller ");
+        return crudUtils.getTicketByData(dateAndTime);
     }
 //    @GetMapping("getByPoint")
 //    public List<Ticket> getAllTicketsByPoint(
