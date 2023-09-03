@@ -20,7 +20,11 @@ public class UserController {
 
     @PostMapping("createUser")
     public User createUser(@RequestBody User user) {
-       return crudUtils.createUser(user);
+        if (crudUtils.checkUser(user)){
+            return crudUtils.createUser(user);
+
+        }
+        return null ;
     }
     @PatchMapping()
     public User updateUser() {

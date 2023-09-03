@@ -15,6 +15,7 @@ public class Ticket {
     private LocalDateTime dateDepart;
     private int seatNumber;
     private int price;
+    private User owner;
 
 //    public Ticket(int id, Route route, Date dateDepart, int seatNumber, int price) {
 //        this.id = id;

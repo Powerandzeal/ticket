@@ -24,4 +24,8 @@ public class UserService {
     public User getUser() {
         return null;
     }
+
+    public boolean userIsCreated(String login) {
+        return false;
+    }
 }

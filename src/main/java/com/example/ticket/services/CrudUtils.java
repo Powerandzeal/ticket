@@ -17,6 +17,8 @@ import java.util.*;
 public class CrudUtils {
 
     public User createUser(User user) {
+
+
         String createQuerry = "INSERT INTO users (fullname,password,login) VALUES (?, ?, ?)";
 
         try (Connection connection = DBUtils.getConnection();
@@ -31,6 +33,26 @@ public class CrudUtils {
         }
 
         return user;
+
+    }
+    public boolean checkUser(User user) {
+        String checkQuerry = "SELECT * FROM users where login = ?";
+        boolean haveHas = false;
+        try (Connection connection = DBUtils.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(checkQuerry)) {
+            preparedStatement.setString(1, user.getLogin());
+            preparedStatement.executeQuery();
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if(resultSet.wasNull()){
+                haveHas = true;
+                System.out.println(haveHas);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return haveHas;
 
     }
 //public User saveUser(User user) {
@@ -114,17 +136,19 @@ public class CrudUtils {
 //}
     public List<Ticket> getAllTicketWithFilter(int page, int pageSize, LocalDate dateTimeFilter, String departureFilter, String destinationFilter, String carrierFilter) {
         // SQL-запрос с фильтрами и пагинацией
-        System.out.println(dateTimeFilter);
+        System.out.println("from getall ticket " +dateTimeFilter);
 
         String query2 = "SELECT * FROM ticket t " +
                 "JOIN route r ON t.route_id = r.id " +
                 "JOIN carrier c ON r.carrier_id = c.id " +
                 "WHERE " +
-                "(? IS NULL OR t.date_depart = ?) " +
+                "(CAST(? AS DATE) IS NULL OR CAST(t.date_depart AS DATE) = ?) " +
                 "AND (? IS NULL OR r.point_of_departure LIKE ?) " +
                 "AND (? IS NULL OR r.destination LIKE ?) " +
                 "AND (? IS NULL OR c.name LIKE ?) " +
                 "LIMIT ? OFFSET ?";
+        //(? IS NOT NULL AND CAST(t.date_depart AS DATE) = ?)
+        //SELECT * FROM ticket WHERE CAST(date_depart AS DATE) = ?";
         List<Ticket> tickets = new ArrayList<>();
 
         try (Connection connection = DBUtils.getConnection();
@@ -184,7 +208,7 @@ public class CrudUtils {
                                     Route route = new Route(routeIdvalue, pointOfDeparture, destination, carrier, tripDuration);
 
                                     // Создаем объект Ticket с маршрутом
-                                    tickets.add(new Ticket(id, route, dateDepart, seatNumber, price));
+                                    tickets.add(new Ticket(id, route, dateDepart, seatNumber, price,null));
 
 
                                 }
@@ -248,7 +272,7 @@ public class CrudUtils {
                             Route route = new Route(routeIdvalue,pointOfDeparture,destination,carrier,tripDuration);
 
                             // Создаем объект Ticket с маршрутом
-                            tickets.add(new Ticket(id, route, dateDepart, seatNumber, price));
+                            tickets.add(new Ticket(id, route, dateDepart, seatNumber, price,null));
 
                         }
                     }
@@ -262,6 +286,68 @@ public class CrudUtils {
 
     return tickets;
     }
+
+//    public Ticket buy(int ticketId,int userID) {
+//        //Запрос который достает билет по id
+//        String checkQuerry = "SELECT * FROM TICKET WHERE ID = ?";
+//        String insertOwner = "INSER INTO TICKET (OWNER) VALUES (?)";
+//        try (Connection connection = DBUtils.getConnection();
+//             PreparedStatement preparedStatement = connection.prepareStatement(checkQuerry)) {
+//            preparedStatement.setInt(1, ticketId);
+//            ResultSet routeResult = preparedStatement.executeQuery();
+//                Integer value =  routeResult.getInt("owner");
+//            if (value.equals(null)) {
+//
+//            }
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
+public String buyTicket(int ticketId, int userId) {
+    // Проверяем, существует ли билет с указанным ID
+    String checkQuery = "SELECT * FROM ticket WHERE id = ?";
+    String updateQuery = "UPDATE ticket SET owner_id = ? WHERE id = ?";
+
+    try (Connection connection = DBUtils.getConnection();
+         PreparedStatement checkStatement = connection.prepareStatement(checkQuery)) {
+
+        checkStatement.setInt(1, ticketId);
+        ResultSet resultSet = checkStatement.executeQuery();
+
+        if (resultSet.next()) {
+            // Билет с указанным ID существует
+
+            // Проверяем, есть ли уже у билета владелец
+            int currentOwnerId = resultSet.getInt("owner_id");
+            if (currentOwnerId == 0) { // Предположим, что отсутствие владельца обозначается как 0
+                // Устанавливаем нового владельца для билета
+                try (PreparedStatement updateStatement = connection.prepareStatement(updateQuery)) {
+                    updateStatement.setInt(1, userId);
+                    updateStatement.setInt(2, ticketId);
+                    updateStatement.executeUpdate();
+                }
+
+                // Создаем объект билета и возвращаем его
+
+
+                // Здесь вы можете заполнить остальные поля билета
+                return "Билет успешно куплен";
+            } else {
+                // У билета уже есть владелец, необходимо обработать эту ситуацию
+                throw new IllegalStateException("Билет уже имеет владельца");
+            }
+        } else {
+            // Билет с указанным ID не найден
+            throw new IllegalArgumentException("Билет с ID " + ticketId + " не существует");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+        // Обработайте исключение по вашим потребностям
+        return null; // или бросьте свое исключение
+    }
+}
+
 //    public List<Ticket> getTicketByDepartByDestination(String pointDepart,String pointDestination,int page,int pagesize){
 //        String query = "select * from ticket inner join route on ticket.route_id = route.id " +
 //                "inner join carrier on route.carrier_id = carrier.id  " +

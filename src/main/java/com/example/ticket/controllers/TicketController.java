@@ -33,14 +33,15 @@ public class TicketController {
 //        return crudUtils.getAllTicket();
 //    }
     @PatchMapping("/buyTicket")
-    public Ticket buyTicket(int ticketId) {
-        return null;
+    public String buyTicket(@RequestParam (value = "TicketID", required = false )int ticketId,
+                            @RequestParam (value = "UserID", required = false ) int userId) {
+        return crudUtils.buyTicket(ticketId, userId);
     }
     @GetMapping("/all")
     public List<Ticket> getAllTicketsWithFilter(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
-            @RequestParam(value = "dateTimeFilter", required = false) LocalDate dateTimeFilter,
+            @RequestParam(value = "dateTimeFilter", required = false ) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTimeFilter,
             @RequestParam(value = "departureFilter", required = false) String departureFilter,
             @RequestParam(value = "destinationFilter", required = false) String destinationFilter,
             @RequestParam(value = "carrierFilter", required = false) String carrierFilter) {
