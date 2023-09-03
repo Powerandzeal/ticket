@@ -3,15 +3,16 @@ package com.example.ticket.models;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Objects;
 @Data
 @AllArgsConstructor
 public class Ticket {
     private int id;
     private Route routeId;
-    private Timestamp dateDepart;
+    private LocalDateTime dateDepart;
     private int seatNumber;
     private int price;
 

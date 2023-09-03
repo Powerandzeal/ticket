@@ -7,8 +7,10 @@ import com.example.ticket.services.CrudUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -36,7 +38,7 @@ public class TicketController {
     public List<Ticket> getAllTicketsWithFilter(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
-            @RequestParam(value = "dateTimeFilter", required = false) Timestamp dateTimeFilter,
+            @RequestParam(value = "dateTimeFilter", required = false) LocalDate dateTimeFilter,
             @RequestParam(value = "departureFilter", required = false) String departureFilter,
             @RequestParam(value = "destinationFilter", required = false) String destinationFilter,
             @RequestParam(value = "carrierFilter", required = false) String carrierFilter) {
@@ -48,12 +50,19 @@ public class TicketController {
     public List<Ticket> getAllTicketsByDate(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
-            @RequestParam(value = "dateTimeFilter", required = false) Timestamp dateTimeFilter){
+            @RequestParam(value = "dateTimeFilter", required = false) LocalDate dateTimeFilter1){
 
-
-
-        return crudUtils.getTicketByData(dateTimeFilter);
+        return crudUtils.getTicketByData(dateTimeFilter1);
     }
+//    @GetMapping("getByPoint")
+//    public List<Ticket> getAllTicketsByPoint(
+//            @RequestParam(value = "page", defaultValue = "1") int page,
+//            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+//            @RequestParam(value = "departureFilter", required = false) String departure,
+//            @RequestParam(value = "destinationFilter", required = false) String destinationr){
+//
+//        return crudUtils.getTicketByDepartByDestination(departure,destinationr,page,pageSize);
+//    }
 
 //    @GetMapping("getTickets")
 //    public String getTicket() {

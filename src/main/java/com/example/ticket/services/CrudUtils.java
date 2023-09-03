@@ -8,8 +8,10 @@ import com.example.ticket.models.User;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.Date;
 
 @Service
 public class CrudUtils {
@@ -110,7 +112,7 @@ public class CrudUtils {
 //
 //    return tickets;
 //}
-    public List<Ticket> getAllTicketWithFilter(int page, int pageSize, Timestamp dateTimeFilter, String departureFilter, String destinationFilter, String carrierFilter) {
+    public List<Ticket> getAllTicketWithFilter(int page, int pageSize, LocalDate dateTimeFilter, String departureFilter, String destinationFilter, String carrierFilter) {
         // SQL-запрос с фильтрами и пагинацией
         System.out.println(dateTimeFilter);
 
@@ -131,8 +133,8 @@ public class CrudUtils {
 
 
             // Установка параметров фильтров и пагинации
-            preparedStatement.setDate(1, dateTimeFilter != null ? new java.sql.Date(dateTimeFilter.getTime()) : null);
-            preparedStatement.setDate(2, dateTimeFilter != null ? new java.sql.Date(dateTimeFilter.getTime()) : null);
+            preparedStatement.setDate(1, dateTimeFilter != null ? Date.valueOf(dateTimeFilter) : null);
+            preparedStatement.setDate(2, dateTimeFilter != null ? Date.valueOf(dateTimeFilter) : null);
             preparedStatement.setString(3, departureFilter != null ? "%" + departureFilter + "%" : null);
             preparedStatement.setString(4, departureFilter != null ? "%" + departureFilter + "%" : null);
             preparedStatement.setString(5, destinationFilter != null ? "%" + destinationFilter + "%" : null);
@@ -148,7 +150,8 @@ public class CrudUtils {
                 {
                     int id = resultSet.getInt("id");
                     int routeId = resultSet.getInt("route_id"); // Получаем ID маршрута
-                    Timestamp dateDepart = resultSet.getTimestamp("date_depart");
+                    LocalDateTime dateDepart = resultSet.getTimestamp("date_depart").toLocalDateTime();
+                    System.out.println(dateDepart);
                     int seatNumber = resultSet.getInt("seat_number");
                     int price = resultSet.getInt("price");
 
@@ -183,6 +186,7 @@ public class CrudUtils {
                                     // Создаем объект Ticket с маршрутом
                                     tickets.add(new Ticket(id, route, dateDepart, seatNumber, price));
 
+
                                 }
                             }
 
@@ -197,20 +201,21 @@ public class CrudUtils {
         return tickets;
     }
 
-    public List<Ticket> getTicketByData(Timestamp date){
-        String query = "SELECT * FROM ticket where date_depart = ?";
+    public List<Ticket> getTicketByData(LocalDate date){
+        String query = "SELECT * FROM ticket WHERE CAST(date_depart AS DATE) = ?";
     List<Ticket> tickets = new ArrayList<>();
         System.out.println("привет из getTicketByData- дата = "+ date.toString());
 //
     try (Connection connection = DBUtils.getConnection();
          PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setTimestamp(1,date);
+        preparedStatement.setDate(1, Date.valueOf(date));
+        System.out.println(date);
         ResultSet resultSet = preparedStatement.executeQuery();
 //
         while (resultSet.next()) {
             int id = resultSet.getInt("id");
             int routeId = resultSet.getInt("route_id"); // Получаем ID маршрута
-            Timestamp dateDepart = resultSet.getTimestamp("date_depart");
+            LocalDateTime dateDepart = resultSet.getTimestamp("date_depart").toLocalDateTime();
             int seatNumber = resultSet.getInt("seat_number");
             int price = resultSet.getInt("price");
 
@@ -257,6 +262,73 @@ public class CrudUtils {
 
     return tickets;
     }
+//    public List<Ticket> getTicketByDepartByDestination(String pointDepart,String pointDestination,int page,int pagesize){
+//        String query = "select * from ticket inner join route on ticket.route_id = route.id " +
+//                "inner join carrier on route.carrier_id = carrier.id  " +
+//                "where route.point_of_departure = ? " +
+//                "LIMIT ? OFFSET ?" ;
+//        List<Ticket> tickets = new ArrayList<>();
+//        System.out.println("привет из getTicketByDepartByDestination = "+  pointDepart + pointDestination);
+////
+//        try (Connection connection = DBUtils.getConnection();
+//             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+//            preparedStatement.setString(1,pointDepart);
+//            preparedStatement.setInt(2,pagesize);
+//            preparedStatement.setInt(3,page);
+//            ResultSet resultSet = preparedStatement.executeQuery();
+////
+//            while (resultSet.next()) {
+//                int id = resultSet.getInt("id");
+//                int routeId = resultSet.getInt("route_id"); // Получаем ID маршрута
+//                Timestamp dateDepart = resultSet.getTimestamp("date_depart");
+//                int seatNumber = resultSet.getInt("seat_number");
+//                int price = resultSet.getInt("price");
+//
+//                // Дополнительный SQL-запрос для получения данных о маршруте
+//                String routeQuery = "SELECT * FROM route WHERE id = ?";
+//                try (PreparedStatement routeStatement = connection.prepareStatement(routeQuery)) {
+//                    routeStatement.setInt(1, routeId);
+//                    ResultSet routeResult = routeStatement.executeQuery();
+//
+//                    if (routeResult.next()) {
+//                        int routeIdvalue = routeResult.getInt("id");
+//                        String pointOfDeparture = routeResult.getString("point_of_departure");
+//                        String destination = routeResult.getString("destination");
+//                        int carrierId = routeResult.getInt("carrier_id");
+//                        int tripDuration = routeResult.getInt("trip_duration");
+//
+//                        String carrierQuerry = "SELECT * FROM carrier WHERE id = ?";
+//                        try(PreparedStatement carrierStatement = connection.prepareStatement(carrierQuerry)){
+//                            carrierStatement.setInt(1,carrierId);
+//                            ResultSet carrierResult = carrierStatement.executeQuery();
+//                            if (carrierResult.next()) {
+//                                int idcarrier = carrierResult.getInt("id");
+//                                String nameCarrier= carrierResult.getString("name");
+//                                int phoneCarrier = carrierResult.getInt("phone_number");
+//
+//                                //Создаем обьект Carrier
+//                                Carrier carrier = new Carrier(idcarrier,nameCarrier,phoneCarrier );
+//
+//                                // Создаем объект Route
+//                                Route route = new Route(routeIdvalue,pointOfDeparture,destination,carrier,tripDuration);
+//                                System.out.println(route);
+//                                // Создаем объект Ticket с маршрутом
+//                                Ticket ticket = new Ticket(id, route, dateDepart, seatNumber, price);
+//                                System.out.println(ticket);
+//                                tickets.add(ticket);
+//                                System.out.println(carrier);
+//                            }
+//                        }
+//
+//                    }
+//                }
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return tickets;
+//    }
 
 
 
