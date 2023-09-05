@@ -7,32 +7,42 @@ import com.example.ticket.services.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/user")
 @AllArgsConstructor
 public class UserController {
    private final CrudUtils crudUtils;
 
-    @GetMapping("/hello")
-    public String hello() {
-        return "hello";
+
+    @GetMapping("/helloSecured")
+    public String helloSec() {
+        return "hello Security ";
     }
 
-    @PostMapping("createUser")
+//    @GetMapping("/info")
+//    public String hellAdmin(Principal principal) {
+//        return principal.getName();
+//    }
+
+    @PostMapping("/Registration")
     public User createUser(@RequestBody User user) {
         if (crudUtils.checkUser(user)){
+            System.out.println("createUser");
             return crudUtils.createUser(user);
 
         }
         return null ;
     }
-    @PatchMapping()
-    public User updateUser() {
-        return null;
-    }
-    @DeleteMapping()
-    public User deleteUser() {
-        return null;
-    }
+
+//    @PatchMapping()
+//    public User updateUser() {
+//        return null;
+//    }
+//    @DeleteMapping()
+//    public User deleteUser() {
+//        return null;
+//    }
 
 }

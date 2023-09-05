@@ -36,24 +36,50 @@ public class CrudUtils {
 
     }
     public boolean checkUser(User user) {
+        System.out.println(user.getLogin());
         String checkQuerry = "SELECT * FROM users where login = ?";
         boolean haveHas = false;
         try (Connection connection = DBUtils.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(checkQuerry)) {
             preparedStatement.setString(1, user.getLogin());
-            preparedStatement.executeQuery();
+
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            if(resultSet.wasNull()){
-                haveHas = true;
-                System.out.println(haveHas);
-            }
+            if(resultSet.next()){
+                resultSet.getString("login").equals(user.getLogin());
+                System.out.println("пользователь c таким логином уже существует");
+
+            } else haveHas = true;
+
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
         return haveHas;
 
+    }
+
+    public Optional<User> findUserByLogin(String login) {
+        User user1 = null;
+        String findQuerry = "SELECT * FROM USERS WHERE LOGIN = ?";
+        try (Connection connection = DBUtils.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(findQuerry)) {
+            preparedStatement.setString(1,login);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+
+               String fullName = resultSet.getString("fullName");
+               int id = resultSet.getInt("id");
+                String password =resultSet.getString("password");
+                String login1 = resultSet.getString("login");
+                user1 = new User(id,fullName,password,login1);
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return Optional.ofNullable(user1);
     }
 //public User saveUser(User user) {
 //    try (Connection connection = DBUtils.getConnection();
@@ -307,7 +333,7 @@ public class CrudUtils {
 public String buyTicket(int ticketId, int userId) {
     // Проверяем, существует ли билет с указанным ID
     String checkQuery = "SELECT * FROM ticket WHERE id = ?";
-    String updateQuery = "UPDATE ticket SET owner_id = ? WHERE id = ?";
+    String updateQuery = "UPDATE ticket SET owner = ? WHERE id = ?";
 
     try (Connection connection = DBUtils.getConnection();
          PreparedStatement checkStatement = connection.prepareStatement(checkQuery)) {
@@ -319,7 +345,7 @@ public String buyTicket(int ticketId, int userId) {
             // Билет с указанным ID существует
 
             // Проверяем, есть ли уже у билета владелец
-            int currentOwnerId = resultSet.getInt("owner_id");
+            int currentOwnerId = resultSet.getInt("owner");
             if (currentOwnerId == 0) { // Предположим, что отсутствие владельца обозначается как 0
                 // Устанавливаем нового владельца для билета
                 try (PreparedStatement updateStatement = connection.prepareStatement(updateQuery)) {
@@ -335,11 +361,13 @@ public String buyTicket(int ticketId, int userId) {
                 return "Билет успешно куплен";
             } else {
                 // У билета уже есть владелец, необходимо обработать эту ситуацию
-                throw new IllegalStateException("Билет уже имеет владельца");
+                return "Билет уже имеет владельца";
+                //throw new IllegalStateException("Билет уже имеет владельца");
+
             }
         } else {
             // Билет с указанным ID не найден
-            throw new IllegalArgumentException("Билет с ID " + ticketId + " не существует");
+            return "Билет с ID " + ticketId + " не существует";
         }
     } catch (SQLException e) {
         e.printStackTrace();

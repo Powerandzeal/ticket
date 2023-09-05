@@ -21,7 +21,7 @@ public class UserService {
         return null;
     }
 
-    public User getUser() {
+    public User getUserByLogin() {
         return null;
     }
 

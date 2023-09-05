@@ -6,6 +6,7 @@ import com.example.ticket.models.User;
 import com.example.ticket.services.CrudUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -37,7 +38,7 @@ public class TicketController {
                             @RequestParam (value = "UserID", required = false ) int userId) {
         return crudUtils.buyTicket(ticketId, userId);
     }
-    @GetMapping("/all")
+    @GetMapping("/FindTicketWithFiltration")
     public List<Ticket> getAllTicketsWithFilter(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
@@ -51,14 +52,14 @@ public class TicketController {
     }
 
 
-    @GetMapping("getByData")
-    public List<Ticket> getAllTicketsByDate(
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
-            @RequestParam(value = "dateTimeFilter")  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateAndTime) {
-        System.out.println("from controller ");
-        return crudUtils.getTicketByData(dateAndTime);
-    }
+//    @GetMapping("/getByData")
+//    public List<Ticket> getAllTicketsByDate(
+//            @RequestParam(value = "page", defaultValue = "1") int page,
+//            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+//            @RequestParam(value = "dateTimeFilter")  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateAndTime) {
+//        System.out.println("from controller ");
+//        return crudUtils.getTicketByData(dateAndTime);
+//    }
 //    @GetMapping("getByPoint")
 //    public List<Ticket> getAllTicketsByPoint(
 //            @RequestParam(value = "page", defaultValue = "1") int page,
