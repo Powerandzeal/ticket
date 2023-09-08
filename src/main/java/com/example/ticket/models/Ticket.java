@@ -1,5 +1,6 @@
 package com.example.ticket.models;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -7,14 +8,28 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Objects;
+
+@Schema(description = "Сущность Билета")
 @Data
 @AllArgsConstructor
 public class Ticket {
+    @Schema(description = "Идентификатор")
     private int id;
+
+    @Schema(description = "Идентификатор маршрута")
     private Route routeId;
+
+    @Schema(description = "Дата отправления")
     private LocalDateTime dateDepart;
+
+    @Schema(description = "Номер места")
     private int seatNumber;
+
+    @Schema(description = "Цена")
     private int price;
+
+    @Schema(description = "Идентификатор владельца")
+    private User owner;
 
 //    public Ticket(int id, Route route, Date dateDepart, int seatNumber, int price) {
 //        this.id = id;
