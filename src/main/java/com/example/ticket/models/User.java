@@ -1,12 +1,10 @@
 package com.example.ticket.models;
 
-import com.example.ticket.configuration.Role;
+import com.example.ticket.configurations.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 @Schema(description = "Сущность пользователя")
 @Data
 @AllArgsConstructor

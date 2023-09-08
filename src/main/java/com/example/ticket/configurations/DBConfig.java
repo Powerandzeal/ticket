@@ -1,14 +1,13 @@
-package com.example.ticket;
+package com.example.ticket.configurations;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.sql.Connection;
-import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-@Schema(name = "DBUtils",
+@Schema(name = "DBConfig",
         description = "предоставляет метод getConnection, который возвращает соединение с базой данных PostgreSQL.")
-public class DBUtils {
+public class DBConfig {
 
     private static String dbUrl = "jdbc:postgresql://localhost:5432/ticket";
     private static String username = "users";

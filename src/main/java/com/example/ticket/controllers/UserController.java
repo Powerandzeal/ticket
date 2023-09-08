@@ -9,11 +9,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name="UserController", description="Регистрация пользователя")
+import javax.validation.Valid;
 
+@Tag(name="UserController", description="Регистрация пользователя")
+@Slf4j
 @RestController
 @RequestMapping("/user")
 @AllArgsConstructor
@@ -25,19 +31,25 @@ public class UserController {
 
 
     @GetMapping("/helloSecured")
+    @PreAuthorize("hasRole('USER')")
     public String helloSec() {
-        return "hello Security ";
+        return "authorized user ";
     }
-    @GetMapping("/helloNotSecured")
+
+    @GetMapping("/admin")
     public String hellonotSec() {
-        return "hello Security ";
+        return "hello Admin ";
     }
-//
     @GetMapping("/hello")
     public String hello() {
-        return "hello  " + userService.findUserByLogin("roma") +
-                "spring security" + userDetailsService.loadUserByUsername("roma");
+        return "hello not authorized user ";
     }
+////
+//    @GetMapping("/helloUser")
+//    public String helloUser() {
+//        return "hello  " + userService.findUserByLogin("roma") +
+//                "spring security" + userDetailsService.loadUserByUsername("roma");
+//    }
 //
     @GetMapping("/helloUser")
     public String hellAdmin(Authentication authentication) {
@@ -63,15 +75,15 @@ public class UserController {
      * @param user Объект пользователя, который будет создан.
      * @return Созданный пользователь или null, если пользователь уже существует.
      */
-    @PostMapping("/Registration")
-    public User createUser(@RequestBody User user) {
-        if (userService.userIsCreated(user)) {
-            System.out.println("createUser");
-            return userService.createUser(user);
-
-        }
-        return null;
+@PostMapping("/register")
+public ResponseEntity<?> registerUser(@Valid @RequestBody User user) {
+    if (userService.userIsCreated(user)) {
+        log.info("User is created: " + user);
+        userService.createUser(user);
+        return ResponseEntity.ok("Пользователь успешно зарегистрирован");
     }
+    return ResponseEntity.badRequest().body("Пользователь с таким именем уже существует");
+}
 
 
 //    @PatchMapping()

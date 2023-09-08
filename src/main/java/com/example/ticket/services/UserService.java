@@ -1,7 +1,7 @@
 package com.example.ticket.services;
 
-import com.example.ticket.DBUtils;
-import com.example.ticket.configuration.Role;
+import com.example.ticket.configurations.DBConfig;
+import com.example.ticket.configurations.Role;
 import com.example.ticket.models.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -31,7 +31,7 @@ public class UserService {
 
         String createQuerry = "INSERT INTO users (fullname,password,login,role) VALUES (?, ?, ?,?)";
 
-        try (Connection connection = DBUtils.getConnection();
+        try (Connection connection = DBConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(createQuerry)) {
             preparedStatement.setString(1, user.getFullName());
             String encodedPassword = passwordEncoder.encode(user.getPassword());
@@ -56,7 +56,7 @@ public class UserService {
     public Optional<User> findUserByLogin(String login) {
         User user1 = null;
         String findQuerry = "SELECT * FROM USERS WHERE LOGIN = ?";
-        try (Connection connection = DBUtils.getConnection();
+        try (Connection connection = DBConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(findQuerry)) {
             preparedStatement.setString(1, login);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -87,7 +87,7 @@ public class UserService {
         System.out.println(user.getLogin());
         String checkQuerry = "SELECT * FROM users where login = ?";
         boolean haveHas = false;
-        try (Connection connection = DBUtils.getConnection();
+        try (Connection connection = DBConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(checkQuerry)) {
             preparedStatement.setString(1, user.getLogin());
 

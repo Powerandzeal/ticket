@@ -1,6 +1,7 @@
 package com.example.ticket.controllers;
 
 import com.example.ticket.models.Ticket;
+import com.example.ticket.Dto.TicketDto;
 import com.example.ticket.services.TicketService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,6 +10,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +53,33 @@ public class TicketController {
         System.out.println(authentication.getName());
         return ticketService.buyTicket(ticketId, authentication);
     }
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @DeleteMapping("/deleteTicket")
+//    public String deleteTicket(@RequestParam(value = "ticketId") int ticketId ){
+//        ticketService.deleteTicketById(ticketId);
+//
+//        return "запрос на удаление для админа";
+//    }
+@DeleteMapping("/deleteTicket")
+public ResponseEntity<String> deleteTicket(@RequestParam(value = "ticketId") int ticketId) {
+    boolean isDeleted = ticketService.deleteTicketById(ticketId);
 
+    if (isDeleted) {
+        return ResponseEntity.ok("Билет успешно удален");
+    } else {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Билет с указанным идентификатором не найден");
+    }
+}
+//    @PatchMapping("/deleteTicket")
+//    public ResponseEntity<String> updateTicket(@RequestParam(value = "ticketId") int ticketId) {
+//        boolean isDeleted = ticketService.deleteTicketById(ticketId);
+//
+//        if (isDeleted) {
+//            return ResponseEntity.ok("Билет успешно удален");
+//        } else {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Билет с указанным идентификатором не найден");
+//        }
+//    }
     /**
      * Получить билеты с фильтрацией.
      *
@@ -74,7 +104,7 @@ public class TicketController {
                     @ApiResponse(responseCode = "404", description = "Not Found")
             })
     @GetMapping("/FindTicketWithFiltration")
-    public List<Ticket> getAllTicketsWithFilter(
+    public List<TicketDto> getAllTicketsWithFilter(
             @RequestParam(value = "page", defaultValue = "1")
             @Parameter(description = "Номер страницы") int page,
 
@@ -117,7 +147,7 @@ public class TicketController {
      * @return Список билетов пользователя.
      */
     @GetMapping("/showMyTicket")
-    public List<Ticket> getMyTicket(Authentication authentication) {
+    public List<TicketDto> getMyTicket(Authentication authentication) {
         return ticketService.getMyTicket(authentication);
     }
 
