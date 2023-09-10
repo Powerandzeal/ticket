@@ -1,21 +1,25 @@
 package com.example.ticket.services;
 
+import com.example.ticket.Dto.TicketDto;
+import com.example.ticket.Dto.UserDto;
 import com.example.ticket.configurations.DBConfig;
 import com.example.ticket.configurations.Role;
 import com.example.ticket.models.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 @Schema(description = "Сервис пользователей")
 @Service
 @AllArgsConstructor
+@Slf4j
 public class UserService {
 
     private final PasswordEncoder passwordEncoder;
@@ -27,7 +31,7 @@ public class UserService {
      * @return Созданный пользователь.
      */
 
-    public User createUser(User user) {
+    public UserDto createUser(UserDto user) {
 
         String createQuerry = "INSERT INTO users (fullname,password,login,role) VALUES (?, ?, ?,?)";
 
@@ -37,7 +41,7 @@ public class UserService {
             String encodedPassword = passwordEncoder.encode(user.getPassword());
             preparedStatement.setString(2, encodedPassword);
             preparedStatement.setString(3, user.getLogin());
-            preparedStatement.setString(4,user.getRole().toString());
+            preparedStatement.setString(4,"USER");
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
@@ -69,7 +73,7 @@ public class UserService {
                 String login1 = resultSet.getString("login");
                 Role role = Role.valueOf(resultSet.getString("role"));
                 user1 = new User(id, fullName, password, login1, role);
-                System.out.println(user1);
+                log.info(String.valueOf(user1));
 
             }
         } catch (SQLException e) {
@@ -83,8 +87,8 @@ public class UserService {
      * @param user Пользователь для проверки.
      * @return true, если пользователь с данным логином уже существует, в противном случае - false.
      */
-    public boolean userIsCreated(User user) {
-        System.out.println(user.getLogin());
+    public boolean userIsCreated(UserDto user) {
+        log.info(user.getLogin());
         String checkQuerry = "SELECT * FROM users where login = ?";
         boolean haveHas = false;
         try (Connection connection = DBConfig.getConnection();
@@ -95,7 +99,7 @@ public class UserService {
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 resultSet.getString("login").equals(user.getLogin());
-                System.out.println("пользователь c таким логином уже существует");
+                log.info("пользователь c таким логином уже существует");
 
             } else haveHas = true;
 
@@ -106,4 +110,80 @@ public class UserService {
 
         return haveHas;
     }
+    public String editUser(int userId, String fullName, String password, String login, String role) {
+        String checkQuery = "SELECT * FROM ticket WHERE id = ?";
+        String updateQuery = "UPDATE users SET ";
+
+        try (Connection connection = DBConfig.getConnection();
+             PreparedStatement checkStatement = connection.prepareStatement(checkQuery)) {
+
+            checkStatement.setInt(1, userId);
+            ResultSet resultSet = checkStatement.executeQuery();
+
+            if (resultSet.next()) {
+                StringBuilder updateSql = new StringBuilder(updateQuery);
+                boolean needsComma = false;
+
+                if (fullName != null) {
+                    updateSql.append("fullname = ?");
+                    needsComma = true;
+                }
+
+                if (password != null) {
+                    if (needsComma) {
+                        updateSql.append(", ");
+                    }
+                    updateSql.append("password = ?");
+                    needsComma = true;
+                }
+
+                if (login != null) {
+                    if (needsComma) {
+                        updateSql.append(", ");
+                    }
+                    updateSql.append("login = ?");
+                    needsComma = true;
+                }
+
+                if (role != null) {
+                    if (needsComma) {
+                        updateSql.append(", ");
+                    }
+                    updateSql.append("role = ?");
+                    needsComma = true;
+                }
+
+                updateSql.append(" WHERE id = ?");
+
+                try (PreparedStatement updateStatement = connection.prepareStatement(updateSql.toString())) {
+                    int parameterIndex = 1;
+
+                    if (fullName != null) {
+                        updateStatement.setString(parameterIndex++, fullName);
+                    }
+
+                    if (password != null) {
+                        String encodedPassword = passwordEncoder.encode(password);
+                        updateStatement.setString(parameterIndex++, encodedPassword);
+                    }
+
+                    if (login != null) {
+                        updateStatement.setString(parameterIndex++, login);
+                    }
+                    if (role != null) {
+                        updateStatement.setString(parameterIndex++, role);
+                    }
+
+                    updateStatement.setInt(parameterIndex, userId);
+
+                    int rowsAffected = updateStatement.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
 }

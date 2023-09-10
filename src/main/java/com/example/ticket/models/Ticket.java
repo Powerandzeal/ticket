@@ -31,12 +31,12 @@ public class Ticket {
     @Schema(description = "Идентификатор владельца")
     private User owner;
 
-//    public Ticket(int id, Route route, Date dateDepart, int seatNumber, int price) {
+//    public Ticket(int id, Route route, Date dateDepart, int seatNumber, int phoneNumber) {
 //        this.id = id;
 //        this.route = route;
 //        this.dateDepart = dateDepart;
 //        this.seatNumber = seatNumber;
-//        this.price = price;
+//        this.phoneNumber = phoneNumber;
 //    }
 //
 //    public int getId() {
@@ -71,12 +71,12 @@ public class Ticket {
 //        this.seatNumber = seatNumber;
 //    }
 //
-//    public int getPrice() {
-//        return price;
+//    public int getPhoneNumber() {
+//        return phoneNumber;
 //    }
 //
-//    public void setPrice(int price) {
-//        this.price = price;
+//    public void setPhoneNumber(int phoneNumber) {
+//        this.phoneNumber = phoneNumber;
 //    }
 //
 //    @Override
@@ -86,7 +86,7 @@ public class Ticket {
 //                ", route=" + route +
 //                ", dateDepart=" + dateDepart +
 //                ", seatNumber=" + seatNumber +
-//                ", price=" + price +
+//                ", phoneNumber=" + phoneNumber +
 //                '}';
 //    }
 //
@@ -95,11 +95,11 @@ public class Ticket {
 //        if (this == o) return true;
 //        if (o == null || getClass() != o.getClass()) return false;
 //        Ticket ticket = (Ticket) o;
-//        return id == ticket.id && seatNumber == ticket.seatNumber && price == ticket.price && Objects.equals(route, ticket.route) && Objects.equals(dateDepart, ticket.dateDepart);
+//        return id == ticket.id && seatNumber == ticket.seatNumber && phoneNumber == ticket.phoneNumber && Objects.equals(route, ticket.route) && Objects.equals(dateDepart, ticket.dateDepart);
 //    }
 //
 //    @Override
 //    public int hashCode() {
-//        return Objects.hash(id, route, dateDepart, seatNumber, price);
+//        return Objects.hash(id, route, dateDepart, seatNumber, phoneNumber);
 //    }
 }

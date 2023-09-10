@@ -4,6 +4,7 @@ import com.example.ticket.models.User;
 import com.example.ticket.services.UserService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 @Schema(description = "Реализация UserDetailsService ")
 @AllArgsConstructor
 @Service
+@Slf4j
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserService userService;
@@ -28,11 +30,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userService.findUserByLogin(username).orElseThrow();
-        System.out.println(user);
+        log.info(String.valueOf(user));
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username(user.getLogin())
                 .password(user.getPassword())
-                .roles(user.getRole().name())
+                .roles(user.getRole().toString())
                 .build();
         return userDetails;
     }

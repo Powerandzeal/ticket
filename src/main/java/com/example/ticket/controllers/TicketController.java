@@ -1,5 +1,6 @@
 package com.example.ticket.controllers;
 
+import com.example.ticket.Dto.TicketCreateDTO;
 import com.example.ticket.models.Ticket;
 import com.example.ticket.Dto.TicketDto;
 import com.example.ticket.services.TicketService;
@@ -9,14 +10,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,6 +30,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/tickets")
 @AllArgsConstructor
+@Slf4j
+@Validated
 public class TicketController {
 
     private final TicketService ticketService;
@@ -46,40 +54,51 @@ public class TicketController {
                     @ApiResponse(responseCode = "404", description = "Not Found")
             }
     )
-    @GetMapping("/buyTicket")
+    @PostMapping("/ticket")
     public String buyTicket(@RequestParam(value = "ticketId")
-                            @Parameter(description = "Идентификатор пользователя") int ticketId,
+                            @Parameter(description = "Идентификатор ,билета") int ticketId,
                             Authentication authentication) {
-        System.out.println(authentication.getName());
+        log.info(authentication.getName());
         return ticketService.buyTicket(ticketId, authentication);
     }
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @DeleteMapping("/deleteTicket")
-//    public String deleteTicket(@RequestParam(value = "ticketId") int ticketId ){
-//        ticketService.deleteTicketById(ticketId);
-//
-//        return "запрос на удаление для админа";
-//    }
-@DeleteMapping("/deleteTicket")
-public ResponseEntity<String> deleteTicket(@RequestParam(value = "ticketId") int ticketId) {
-    boolean isDeleted = ticketService.deleteTicketById(ticketId);
 
-    if (isDeleted) {
-        return ResponseEntity.ok("Билет успешно удален");
-    } else {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Билет с указанным идентификатором не найден");
+    @PostMapping("/ticketCreate")
+    public ResponseEntity<?> createTicket(@Valid @RequestBody TicketCreateDTO ticket) {
+        if (ticket.getRouteId() == 0 || ticket.getDateDepart() == null || ticket.getSeatNumber() == 0 || ticket.getPrice() == 0) {
+            return ResponseEntity.badRequest().body("Route ID, Date Departure, Seat Number, and Price cannot be null.");
+        }
+
+        // Если валидация прошла успешно, выполните создание билета
+        return ResponseEntity.ok(ticketService.createTicket(ticket));
     }
-}
-//    @PatchMapping("/deleteTicket")
-//    public ResponseEntity<String> updateTicket(@RequestParam(value = "ticketId") int ticketId) {
-//        boolean isDeleted = ticketService.deleteTicketById(ticketId);
-//
-//        if (isDeleted) {
-//            return ResponseEntity.ok("Билет успешно удален");
-//        } else {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Билет с указанным идентификатором не найден");
-//        }
-//    }
+
+    @PutMapping("/updateTickets")
+    public ResponseEntity<?> updateTicket2(@RequestParam Integer ticketId,
+                                           @RequestParam(required = false) Integer routeId,
+                                           @RequestParam(required = false)@Parameter (example ="2023-09-10T12:24:07" ) String data,
+                                           @RequestParam(required = false) Integer seatNumber,
+                                           @RequestParam(required = false) Integer prive,
+                                           @RequestParam(required = false) Integer ownerId
+
+    ) {
+
+
+        // Если валидация прошла успешно, выполните создание билета
+        return ResponseEntity.ok(ticketService.editTicket(ticketId, routeId, data, seatNumber, prive, ownerId));
+    }
+
+    @DeleteMapping("/deleteTicket")
+    public ResponseEntity<String> deleteTicket(@RequestParam(value = "ticketId") int ticketId) {
+        boolean isDeleted = ticketService.deleteTicketById(ticketId);
+
+        if (isDeleted) {
+            return ResponseEntity.ok("Билет успешно удален");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Билет с указанным идентификатором не найден");
+        }
+    }
+
+
     /**
      * Получить билеты с фильтрацией.
      *
@@ -103,7 +122,7 @@ public ResponseEntity<String> deleteTicket(@RequestParam(value = "ticketId") int
                     @ApiResponse(responseCode = "403", description = "Forbidden"),
                     @ApiResponse(responseCode = "404", description = "Not Found")
             })
-    @GetMapping("/FindTicketWithFiltration")
+    @GetMapping("/findTicketWithFiltration")
     public List<TicketDto> getAllTicketsWithFilter(
             @RequestParam(value = "page", defaultValue = "1")
             @Parameter(description = "Номер страницы") int page,
@@ -128,27 +147,6 @@ public ResponseEntity<String> deleteTicket(@RequestParam(value = "ticketId") int
         // Вызываем сервисный метод, передавая параметры фильтрации и пагинации
         return ticketService.getAllTicketWithFilter(page, pageSize, dateTimeFilter, departureFilter, destinationFilter, carrierFilter);
     }
-    @Operation(
-            operationId = "getMyTicket",
-            summary = "Получить купленные билеты",
-            description = "Возвращает список билетов, принадлежащих авторизованному пользователю.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK", content = {
-                            @Content(mediaType = "*/*", schema = @Schema(implementation = Ticket.class))
-                    }),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Forbidden"),
-                    @ApiResponse(responseCode = "404", description = "Not Found")
-            })
-    /**
-     * Получает список билетов, принадлежащих авторизованному пользователю.
-     *
-     * @param authentication Информация об авторизации пользователя.
-     * @return Список билетов пользователя.
-     */
-    @GetMapping("/showMyTicket")
-    public List<TicketDto> getMyTicket(Authentication authentication) {
-        return ticketService.getMyTicket(authentication);
-    }
+
 
 }

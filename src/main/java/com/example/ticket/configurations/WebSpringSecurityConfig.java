@@ -23,6 +23,9 @@ public class WebSpringSecurityConfig {
                 .antMatchers("/user/helloSecured").authenticated()
                 .antMatchers("/tickets/deleteTicket").hasRole("ADMIN")
                 .antMatchers("/user/admin").hasRole("ADMIN")
+                .antMatchers("/user/updateUser").hasRole("ADMIN")
+                .antMatchers("/carrier/**").hasRole("ADMIN")
+                .antMatchers("/route/**").hasRole("ADMIN")
                 .and().formLogin().and().build();
     }
 

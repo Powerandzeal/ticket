@@ -1,22 +1,28 @@
 package com.example.ticket.services;
 
+import com.example.ticket.Dto.TicketCreateDTO;
 import com.example.ticket.Dto.TicketDto;
 import com.example.ticket.configurations.DBConfig;
 import com.example.ticket.models.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 @Schema(name = "Сервис билетов",description = "взаимодействие с билетами")
 @Service
 @AllArgsConstructor
+@Slf4j
 public class TicketService {
     /**
      * Покупает билет для пользователя с указанным ID.
@@ -95,13 +101,15 @@ public class TicketService {
         try (Connection connection = DBConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(findQuerry)) {
             preparedStatement.setString(1, login);
-            System.out.println(login);
+            log.info(login + "users login");
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
                 int id = resultSet.getInt("id");
                 int routeId = resultSet.getInt("route_id"); // Получаем ID маршрута
-                LocalDateTime dateDepart = resultSet.getTimestamp("date_depart").toLocalDateTime();
+//                LocalDateTime dateDepart = resultSet.getTimestamp("date_depart").toLocalDateTime();
+                Timestamp timestamp = resultSet.getTimestamp("date_depart");
+                LocalDateTime dateDepart = (timestamp != null) ? timestamp.toLocalDateTime() : null;
                 int seatNumber = resultSet.getInt("seat_number");
                 int price = resultSet.getInt("price");
 
@@ -165,7 +173,6 @@ public class TicketService {
      */
     public List<TicketDto> getAllTicketWithFilter(int page, int pageSize, LocalDate dateTimeFilter, String departureFilter, String destinationFilter, String carrierFilter) {
         // SQL-запрос с фильтрами и пагинацией
-        System.out.println("from getall ticket " + dateTimeFilter);
 
         String query2 = "SELECT * FROM ticket t " +
                 "JOIN route r ON t.route_id = r.id " +
@@ -202,7 +209,7 @@ public class TicketService {
                     int id = resultSet.getInt("id");
                     int routeId = resultSet.getInt("route_id"); // Получаем ID маршрута
                     LocalDateTime dateDepart = resultSet.getTimestamp("date_depart").toLocalDateTime();
-                    System.out.println(dateDepart);
+
                     int seatNumber = resultSet.getInt("seat_number");
                     int price = resultSet.getInt("price");
 
@@ -279,6 +286,252 @@ public boolean deleteTicketById(int ticketId) {
     }
 }
 
+    public String createTicket(TicketCreateDTO ticket) {
+
+        String createQuerry = "INSERT INTO ticket (route_id, date_depart, seat_number, price) VALUES (?, ?, ?, ?)";
+
+        try (Connection connection = DBConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(createQuerry)) {
+            preparedStatement.setInt(1, ticket.getRouteId());
+            preparedStatement.setTimestamp(2, Timestamp.valueOf(ticket.getDateDepart()));
+            preparedStatement.setInt(3, ticket.getSeatNumber());
+            preparedStatement.setInt(4, ticket.getPrice());
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            if (rowsAffected > 0) {
+
+                return "Билет успешно создан";
+            } else {
+                // Обработка случая, когда билет не был добавлен
+                return "Ошибка создания билета";
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+
+        // ...
+
+        /**
+         * Редактирует билет по его идентификатору.
+         *
+         * @param ticketId      Идентификатор билета.
+         * @param updatedTicket Обновленные данные билета.
+         * @return "Success" в случае успешного редактирования или сообщение об ошибке.
+         */
+
+
+            // ... Другие методы сервиса ...
+
+            /**
+             * Изменяет параметры билета по его идентификатору.
+             *
+             * @param ticketId Идентификатор билета.
+             * @return Обновленный билет или null, если билет с указанным ID не найден.
+             */
+            public TicketDto editTicket(int ticketId, Integer routeId, String data, Integer seatNumber, Integer price, Integer ownerId) {
+                String checkQuery = "SELECT * FROM ticket WHERE id = ?";
+                String updateQuery = "UPDATE ticket SET ";
+
+                try (Connection connection = DBConfig.getConnection();
+                     PreparedStatement checkStatement = connection.prepareStatement(checkQuery)) {
+
+                    checkStatement.setInt(1, ticketId);
+                    ResultSet resultSet = checkStatement.executeQuery();
+
+                    if (resultSet.next()) {
+                        StringBuilder updateSql = new StringBuilder(updateQuery);
+                        boolean needsComma = false;
+
+                        if (routeId != null) {
+                            updateSql.append("route_id = ?");
+                            needsComma = true;
+                        }
+
+                        if (ownerId != null) {
+                            if (needsComma) {
+                                updateSql.append(", ");
+                            }
+                            updateSql.append("owner = ?");
+                            needsComma = true;
+                        }
+
+                        if (data != null) {
+                            if (needsComma) {
+                                updateSql.append(", ");
+                            }
+                            updateSql.append("date_depart = ?");
+                            needsComma = true;
+                        }
+
+                        if (seatNumber != null) {
+                            if (needsComma) {
+                                updateSql.append(", ");
+                            }
+                            updateSql.append("seat_number = ?");
+                            needsComma = true;
+                        }
+
+                        if (price != null) {
+                            if (needsComma) {
+                                updateSql.append(", ");
+                            }
+                            updateSql.append("price = ?");
+                        }
+
+                        updateSql.append(" WHERE id = ?");
+
+                        try (PreparedStatement updateStatement = connection.prepareStatement(updateSql.toString())) {
+                            int parameterIndex = 1;
+
+                            if (routeId != null) {
+                                updateStatement.setInt(parameterIndex++, routeId);
+                            }
+
+                            if (ownerId != null) {
+                                updateStatement.setInt(parameterIndex++, ownerId);
+                            }
+                            if (data != null) {
+                                LocalDateTime dateTime= null;
+                                try {
+                                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+                                    dateTime = LocalDateTime.parse(data, formatter);
+                                    System.out.println(dateTime);
+                                    updateStatement.setTimestamp(parameterIndex++, Timestamp.valueOf(dateTime));
+
+                                } catch (DateTimeParseException e) {
+                                    System.out.println(e.getMessage()+ "ошибка");
+                                }
+
+                            }
+                            if (seatNumber != null) {
+                                updateStatement.setInt(parameterIndex++, seatNumber);
+                            }
+                            if (price != null) {
+                                updateStatement.setInt(parameterIndex++, price);
+                            }
+
+                            updateStatement.setInt(parameterIndex, ticketId);
+
+                            int rowsAffected = updateStatement.executeUpdate();
+                        }
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                return null; // Билет с указанным ID не найден или произошла ошибка
+            }
+
+//    public TicketDto editTicket2(int ticketId,
+//                                 int ) {
+//        // Проверяем, существует ли билет с указанным ID
+//        String checkQuery = "SELECT * FROM ticket WHERE id = ?";
+//        String updateQuery = "UPDATE ticket SET ";
+//
+//        try (Connection connection = DBConfig.getConnection();
+//             PreparedStatement checkStatement = connection.prepareStatement(checkQuery)) {
+//
+//            checkStatement.setInt(1, ticketId);
+//            ResultSet resultSet = checkStatement.executeQuery();
+//
+//            if (resultSet.next()) {
+//                // Билет с указанным ID существует
+//
+//                // Генерируем динамический SQL-запрос для обновления параметров билета
+//                StringBuilder updateSql = new StringBuilder(updateQuery);
+//                boolean needsComma = false;
+//
+//                if (updatedTicket.getRouteId() != 0) {
+//                    if (needsComma) {
+//                        updateSql.append(", ");
+//                    }
+//                    updateSql.append("route_id = ?");
+//                    needsComma = true;
+//                }
+//
+//                if (updatedTicket.getOwner() != 0) {
+//                    if (needsComma) {
+//                        updateSql.append(", ");
+//                    }
+//                    updateSql.append("owner = ?");
+//                    needsComma = true;
+//                }
+//                if (updatedTicket.getDateDepart() != null) {
+//                    if (needsComma) {
+//                        updateSql.append(", ");
+//                    }
+//                    updateSql.append("date_depart = ?");
+//                    needsComma = true;
+//                }
+//                if (updatedTicket.getSeatNumber() != 0) {
+//                    if (needsComma) {
+//                        updateSql.append(", ");
+//                    }
+//                    updateSql.append("seat_number = ?");
+//                    needsComma = true;
+//                }
+//                if (updatedTicket.getSeatNumber() != 0) {
+//                    if (needsComma) {
+//                        updateSql.append(", ");
+//                    }
+//                    updateSql.append("seat_number = ?");
+//                    needsComma = true;
+//                }
+//                if (updatedTicket.getPhoneNumber() != 0) {
+//                    if (needsComma) {
+//                        updateSql.append(", ");
+//                    }
+//                    updateSql.append("phoneNumber = ?");
+//                    needsComma = true;
+//                }
+//
+//                // Продолжайте добавлять условия для других параметров, таких как seat_number, phoneNumber, date_depart, по аналогии
+//
+//                updateSql.append(" WHERE id = ?");
+//                try (PreparedStatement updateStatement = connection.prepareStatement(updateSql.toString())) {
+//                    int parameterIndex = 1;
+//
+//                    if (updatedTicket.getRouteId() !=0) {
+//                        updateStatement.setInt(parameterIndex++, updatedTicket.getRouteId());
+//                    }
+//
+//                    if (updatedTicket.getOwner() != 0) {
+//                        updateStatement.setInt(parameterIndex++, updatedTicket.getOwner());
+//                    }
+//                    if (updatedTicket.getDateDepart() != null) {
+//                        updateStatement.setTimestamp(parameterIndex++, Timestamp.valueOf(updatedTicket.getDateDepart()));
+//
+//                    }
+//                    if (updatedTicket.getPhoneNumber() != 0) {
+//                        updateStatement.setInt(parameterIndex++, updatedTicket.getPhoneNumber());
+//                    }
+//                    if (updatedTicket.getSeatNumber() != 0) {
+//                        updateStatement.setInt(parameterIndex++, updatedTicket.getSeatNumber());
+//                    }
+//
+//                    // Продолжайте устанавливать параметры для других полей
+//
+//                    updateStatement.setInt(parameterIndex, ticketId);
+//
+//                    int rowsAffected = updateStatement.executeUpdate();
+//
+//
+//                }
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return null; // Билет с указанным ID не найден или произошла ошибка
+//    }
+
+            // ... Другие методы сервиса ...
+
+
+
 //    public Ticket findTicketbyId(int ticketId, String userName) {
 //        String findTicketQuerry = "SELECT * FROM ticket WHERE id = ?";
 //
@@ -296,7 +549,7 @@ public boolean deleteTicketById(int ticketId) {
 //                        LocalDateTime dateDepart = resultSet.getTimestamp("date_depart").toLocalDateTime();
 //                        System.out.println(dateDepart);
 //                        int seatNumber = resultSet.getInt("seat_number");
-//                        int price = resultSet.getInt("price");
+//                        int phoneNumber = resultSet.getInt("phoneNumber");
 //
 //                        // Дополнительный SQL-запрос для получения данных о маршруте
 //                        String routeQuery = "SELECT * FROM route WHERE id = ?";
@@ -336,7 +589,7 @@ public boolean deleteTicketById(int ticketId) {
 //                                                Route route = new Route(routeIdvalue, pointOfDeparture, destination, carrier, tripDuration);
 //                                                User user = new User(idUser, password, login, fullName, role);
 //                                                // Создаем объект Ticket с маршрутом
-//                                                return new Ticket(id, route, dateDepart, seatNumber, price, user);
+//                                                return new Ticket(id, route, dateDepart, seatNumber, phoneNumber, user);
 //                                            }
 //
 //                                        }
@@ -360,5 +613,5 @@ public boolean deleteTicketById(int ticketId) {
 //        return null;
 //    }
 
-}
+    }
 

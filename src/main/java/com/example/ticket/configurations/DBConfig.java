@@ -5,8 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-@Schema(name = "DBConfig",
-        description = "предоставляет метод getConnection, который возвращает соединение с базой данных PostgreSQL.")
+
 public class DBConfig {
 
     private static String dbUrl = "jdbc:postgresql://localhost:5432/ticket";
