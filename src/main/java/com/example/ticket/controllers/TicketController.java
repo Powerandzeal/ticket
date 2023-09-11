@@ -26,7 +26,7 @@ import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 
-@Tag(name = "Ticket controller", description = "Просмотр и покупка билетов")
+@Tag(name = "Ticket controller", description = "Просмотр, покупка, и crud операции")
 @RestController
 @RequestMapping("/ticket")
 @AllArgsConstructor

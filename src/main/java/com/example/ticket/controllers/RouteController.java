@@ -16,7 +16,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-@Tag(name = "Route controller", description = "Crud operation for route")
+@Tag(name = "Route controller", description = "Crud операции для перевозчика")
 @RestController
 @RequestMapping("/route")
 @AllArgsConstructor

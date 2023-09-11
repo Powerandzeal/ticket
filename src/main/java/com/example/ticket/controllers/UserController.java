@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-@Tag(name = "UserController", description = "Регистрация пользователя")
+@Tag(name = "UserController", description = "Регистрация пользователя и crud операции")
 @Slf4j
 @RestController
 @RequestMapping("/user")
