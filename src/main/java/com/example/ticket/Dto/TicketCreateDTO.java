@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 public class TicketCreateDTO {
@@ -18,6 +19,7 @@ public class TicketCreateDTO {
     int seatNumber;
     @Schema(description = "Номер места")
     int price;
+    @Schema(description = "Владелец")
     int owner;
 
 }

@@ -7,11 +7,10 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class CarrierDto {
-
+    @Schema(description = "Id перевозчика")
     int id;
     @Schema(description = "Название")
     String name;
-
     @Schema(description = "Номер телефона")
     int phoneNumber;
 

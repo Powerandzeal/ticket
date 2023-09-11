@@ -28,7 +28,7 @@ import java.util.List;
 
 @Tag(name = "Ticket controller", description = "Просмотр и покупка билетов")
 @RestController
-@RequestMapping("/tickets")
+@RequestMapping("/ticket")
 @AllArgsConstructor
 @Slf4j
 @Validated
@@ -62,6 +62,21 @@ public class TicketController {
         return ticketService.buyTicket(ticketId, authentication);
     }
 
+    /**
+     * Создать билет.
+     *
+     * @param ticket Данные для создания билета.
+     * @return ResponseEntity с результатом создания билета.
+     */
+    @Operation(
+            operationId = "createTicket",
+            summary = "Создать билет",
+            description = "Создает новый билет на основе предоставленных данных.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "400", description = "Bad Request")
+            }
+    )
     @PostMapping("/ticketCreate")
     public ResponseEntity<?> createTicket(@Valid @RequestBody TicketCreateDTO ticket) {
         if (ticket.getRouteId() == 0 || ticket.getDateDepart() == null || ticket.getSeatNumber() == 0 || ticket.getPrice() == 0) {
@@ -72,21 +87,57 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.createTicket(ticket));
     }
 
+    /**
+     * Обновить билет.
+     *
+     * @param ticketId   Идентификатор билета, который нужно обновить.
+     * @param routeId    Новый идентификатор маршрута для билета (опционально).
+     * @param data       Новая дата отправления для билета (опционально).
+     * @param seatNumber Новый номер места для билета (опционально).
+     * @param price      Новая цена для билета (опционально).
+     * @param ownerId    Новый идентификатор владельца билета (опционально).
+     * @return ResponseEntity с результатом обновления билета.
+     */
+    @Operation(
+            operationId = "updateTicket",
+            summary = "Обновить билет",
+            description = "Обновляет существующий билет на основе предоставленных данных.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "400", description = "Bad Request")
+            }
+    )
     @PutMapping("/updateTickets")
     public ResponseEntity<?> updateTicket2(@RequestParam Integer ticketId,
                                            @RequestParam(required = false) Integer routeId,
-                                           @RequestParam(required = false)@Parameter (example ="2023-09-10T12:24:07" ) String data,
+                                           @RequestParam(required = false) @Parameter(example = "2023-09-10T12:24:07") String data,
                                            @RequestParam(required = false) Integer seatNumber,
-                                           @RequestParam(required = false) Integer prive,
+                                           @RequestParam(required = false) Integer price,
                                            @RequestParam(required = false) Integer ownerId
 
     ) {
+        if (price <= 0 || seatNumber <= 0 || ownerId <= 0) {
+            return ResponseEntity.badRequest().body("price, seatNumber, Destination, and ownerId не могут быть отрицательными или равным 0.");
+        }
 
-
-        // Если валидация прошла успешно, выполните создание билета
-        return ResponseEntity.ok(ticketService.editTicket(ticketId, routeId, data, seatNumber, prive, ownerId));
+        return ResponseEntity.ok(ticketService.editTicket(ticketId, routeId, data, seatNumber, price, ownerId));
     }
 
+    /**
+     * Удалить билет по идентификатору.
+     *
+     * @param ticketId Идентификатор билета для удаления.
+     * @return ResponseEntity с результатом удаления билета.
+     */
+    @Operation(
+            operationId = "deleteTicket",
+            summary = "Удалить билет",
+            description = "Удаляет билет по заданному идентификатору.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "404", description = "Not Found")
+            }
+    )
     @DeleteMapping("/deleteTicket")
     public ResponseEntity<String> deleteTicket(@RequestParam(value = "ticketId") int ticketId) {
         boolean isDeleted = ticketService.deleteTicketById(ticketId);
@@ -122,7 +173,7 @@ public class TicketController {
                     @ApiResponse(responseCode = "403", description = "Forbidden"),
                     @ApiResponse(responseCode = "404", description = "Not Found")
             })
-    @GetMapping("/findTicketWithFiltration")
+    @GetMapping("/findTicket")
     public List<TicketDto> getAllTicketsWithFilter(
             @RequestParam(value = "page", defaultValue = "1")
             @Parameter(description = "Номер страницы") int page,
@@ -144,7 +195,6 @@ public class TicketController {
             @Parameter(description = "Перевозчик") String carrierFilter
     ) {
 
-        // Вызываем сервисный метод, передавая параметры фильтрации и пагинации
         return ticketService.getAllTicketWithFilter(page, pageSize, dateTimeFilter, departureFilter, destinationFilter, carrierFilter);
     }
 

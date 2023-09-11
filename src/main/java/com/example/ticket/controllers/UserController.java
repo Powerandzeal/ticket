@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-@Tag(name="UserController", description="Регистрация пользователя")
+@Tag(name = "UserController", description = "Регистрация пользователя")
 @Slf4j
 @RestController
 @RequestMapping("/user")
@@ -33,63 +33,36 @@ public class UserController {
 
     private final TicketService ticketService;
     private final UserService userService;
-    private final UserDetailsServiceImpl userDetailsService;
 
-
-    @GetMapping("/helloSecured")
-    @PreAuthorize("hasRole('USER')")
-    public String helloSec() {
-        return "authorized user ";
-    }
-
-    @GetMapping("/admin")
-    public String hellonotSec() {
-        return "hello Admin ";
-    }
-    @GetMapping("/hello")
-    public String hello() {
-        return "hello not authorized user ";
-    }
-////
-//    @GetMapping("/helloUser")
-//    public String helloUser() {
-//        return "hello  " + userService.findUserByLogin("roma") +
-//                "spring security" + userDetailsService.loadUserByUsername("roma");
-//    }
-//
-    @GetMapping("/helloUser")
-    public String hellAdmin(Authentication authentication) {
-        System.out.println(" hello "+ authentication.getName());
-        return "Hello "+ authentication.getName();
-    }
-@Operation(
-        operationId = "createUser",
-        summary = "Создать нового пользователя",
-        description = "Создает нового пользователя и возвращает его.",
-        responses = {
-                @ApiResponse(responseCode = "200", description = "OK", content = {
-                        @Content(mediaType = "*/*", schema = @Schema(implementation = User.class))
-                }),
-                @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                @ApiResponse(responseCode = "403", description = "Forbidden"),
-                @ApiResponse(responseCode = "404", description = "Not Found")
-        }
-)
+    @Operation(
+            operationId = "createUser",
+            summary = "Создать нового пользователя",
+            description = "Создает нового пользователя и возвращает его.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK", content = {
+                            @Content(mediaType = "*/*", schema = @Schema(implementation = User.class))
+                    }),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden"),
+                    @ApiResponse(responseCode = "404", description = "Not Found")
+            }
+    )
     /**
      * Создает нового пользователя.
      *
      * @param user Объект пользователя, который будет создан.
      * @return Созданный пользователь или null, если пользователь уже существует.
      */
-@PostMapping("/register")
-public ResponseEntity<?> registerUser(@Valid @RequestBody UserDto user) {
-    if (userService.userIsCreated(user)) {
-        log.info("User is created: " + user);
-        userService.createUser(user);
-        return ResponseEntity.ok("Пользователь успешно зарегистрирован");
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserDto user) {
+        if (userService.userIsCreated(user)) {
+            log.info("User is created: " + user);
+            userService.createUser(user);
+            return ResponseEntity.ok("Пользователь успешно зарегистрирован");
+        }
+        return ResponseEntity.badRequest().body("Пользователь с таким именем уже существует");
     }
-    return ResponseEntity.badRequest().body("Пользователь с таким именем уже существует");
-}
+
     @Operation(
             operationId = "getMyTicket",
             summary = "Получить купленные билеты",
@@ -112,26 +85,39 @@ public ResponseEntity<?> registerUser(@Valid @RequestBody UserDto user) {
     public List<TicketDto> getMyTicket(Authentication authentication) {
         return ticketService.getMyTicket(authentication);
     }
+
+    @Operation(
+            operationId = "updateUser",
+            summary = "обновление  данных пользователя",
+            description = "Создает нового пользователя .",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK", content = {
+                            @Content(mediaType = "*/*", schema = @Schema(implementation = User.class))
+                    }),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden"),
+                    @ApiResponse(responseCode = "404", description = "Not Found")
+            }
+    )
+    /**
+     * Создает нового пользователя.
+     *
+     * @param user Объект пользователя, который будет создан.
+     * @return Созданный пользователь или null, если пользователь уже существует.
+     */
     @PutMapping("/updateUser")
-    public ResponseEntity<?> updateTicket2(@RequestParam Integer userId,
-                                           @RequestParam(required = false) String fullName,
-                                           @RequestParam(required = false) String password,
-                                           @RequestParam(required = false) String login,
-                                           @RequestParam(required = false) String role
+    public ResponseEntity<?> updateUser(@RequestParam Integer userId,
+                                        @RequestParam(required = false) String fullName,
+                                        @RequestParam(required = false) String password,
+                                        @RequestParam(required = false) String login,
+                                        @RequestParam(required = false) String role
 
     ) {
-
+        if (userId <= 0) {
+            return ResponseEntity.badRequest().body("userId не могут быть отрицательными или равным 0.");
+        }
         // Если валидация прошла успешно, выполните создание билета
         return ResponseEntity.ok(userService.editUser(userId, fullName, password, login, role));
     }
-
-//    @PatchMapping()
-//    public User updateUser() {
-//        return null;
-//    }
-//    @DeleteMapping()
-//    public User deleteUser() {
-//        return null;
-//    }
 
 }

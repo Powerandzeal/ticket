@@ -5,11 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+
 @Schema(description = "Dto билета")
 @Data
 @AllArgsConstructor
 public class TicketDto {
-    int  id;
+    int id;
     @Schema(description = "Точка отправления")
     String pointOfDeparture;
     @Schema(description = "Точка назначения")
@@ -21,7 +22,7 @@ public class TicketDto {
     @Schema(description = "Номер места")
     int seatNumber;
     @Schema(description = "Стоимость билета")
-    int price ;
+    int price;
     @Schema(description = "Дата оптравления")
     private LocalDateTime dateDepart;
 

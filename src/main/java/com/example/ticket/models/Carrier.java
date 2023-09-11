@@ -8,10 +8,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 @Data
 @AllArgsConstructor
 public class Carrier {
-    @Schema(description = "Идентификатор")
     private int id;
-    @Schema(description = "Название перевозчика")
     private String name;
-    @Schema(description = "Номер телефона")
     private int phoneNumber;
 }

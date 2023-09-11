@@ -13,16 +13,13 @@ import org.springframework.security.web.SecurityFilterChain;
 public class WebSpringSecurityConfig {
 
 
-
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
 
 
         return http.csrf().disable()
                 .authorizeHttpRequests().antMatchers("/tickets/buyTicket").authenticated()
-                .antMatchers("/user/helloSecured").authenticated()
                 .antMatchers("/tickets/deleteTicket").hasRole("ADMIN")
-                .antMatchers("/user/admin").hasRole("ADMIN")
                 .antMatchers("/user/updateUser").hasRole("ADMIN")
                 .antMatchers("/carrier/**").hasRole("ADMIN")
                 .antMatchers("/route/**").hasRole("ADMIN")
@@ -35,7 +32,7 @@ public class WebSpringSecurityConfig {
     }
 
 
-    }
+}
 
 
 

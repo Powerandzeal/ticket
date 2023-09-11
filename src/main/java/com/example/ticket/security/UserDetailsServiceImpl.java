@@ -9,17 +9,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
 /**
  * Реализация интерфейса {@link UserDetailsService} для аутентификации пользователей.
  * Этот сервис загружает информацию о пользователе из {@link UserService}.
  */
-@Schema(description = "Реализация UserDetailsService ")
 @AllArgsConstructor
 @Service
 @Slf4j
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserService userService;
+
     /**
      * Загружает информацию о пользователе по его имени пользователя (логину).
      *
@@ -34,7 +35,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username(user.getLogin())
                 .password(user.getPassword())
-                .roles(user.getRole().toString())
+                .roles(user.getRole().name())
                 .build();
         return userDetails;
     }

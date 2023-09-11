@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
-@Schema(description = "Сервис пользователей")
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -41,7 +41,7 @@ public class UserService {
             String encodedPassword = passwordEncoder.encode(user.getPassword());
             preparedStatement.setString(2, encodedPassword);
             preparedStatement.setString(3, user.getLogin());
-            preparedStatement.setString(4,"USER");
+            preparedStatement.setString(4, "USER");
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
@@ -51,6 +51,7 @@ public class UserService {
         return user;
 
     }
+
     /**
      * Ищет пользователя по логину в базе данных.
      *
@@ -81,6 +82,7 @@ public class UserService {
         }
         return Optional.ofNullable(user1);
     }
+
     /**
      * Проверяет, создан ли пользователь с данным логином.
      *
@@ -110,6 +112,7 @@ public class UserService {
 
         return haveHas;
     }
+
     public String editUser(int userId, String fullName, String password, String login, String role) {
         String checkQuery = "SELECT * FROM ticket WHERE id = ?";
         String updateQuery = "UPDATE users SET ";
@@ -176,14 +179,13 @@ public class UserService {
 
                     updateStatement.setInt(parameterIndex, userId);
 
-                    int rowsAffected = updateStatement.executeUpdate();
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return null;
+        return "Данные пользователя изменены";
     }
 
 }

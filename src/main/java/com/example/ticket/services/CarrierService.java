@@ -33,7 +33,8 @@ public class CarrierService {
             throw new RuntimeException(e);
         }
     }
-    public Carrier updateCarrier(int carrierId, String nameCarrier, Integer phoneNumber) {
+
+    public String updateCarrier(int carrierId, String nameCarrier, Integer phoneNumber) {
         String checkQuery = "SELECT * FROM carrier WHERE id = ?";
         String updateQuery = "UPDATE carrier SET ";
 
@@ -77,15 +78,15 @@ public class CarrierService {
 
                     updateStatement.setInt(parameterIndex, carrierId);
 
-                    int rowsAffected = updateStatement.executeUpdate();
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return null;
+        return "Параметры перевозчика изменены";
     }
+
     public boolean deleteCarrierById(int carrierId) {
         String deleteQuery = "DELETE FROM carrier WHERE id = ?";
         try (Connection connection = DBConfig.getConnection();

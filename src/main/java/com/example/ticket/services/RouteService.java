@@ -18,7 +18,7 @@ public class RouteService {
              PreparedStatement preparedStatement = connection.prepareStatement(createQuerry)) {
             preparedStatement.setString(1, routeDTO.getPointOfDeparture());
             preparedStatement.setString(2, routeDTO.getDestination());
-            preparedStatement.setInt(3,routeDTO.getCarrierId());
+            preparedStatement.setInt(3, routeDTO.getCarrierId());
             preparedStatement.setInt(4, routeDTO.getTripDuration());
             int rowsAffected = preparedStatement.executeUpdate();
 
@@ -33,6 +33,7 @@ public class RouteService {
             throw new RuntimeException(e);
         }
     }
+
     public boolean deleteRouteById(int routeId) {
         String deleteQuery = "DELETE FROM route WHERE id = ?";
         try (Connection connection = DBConfig.getConnection();
@@ -46,8 +47,9 @@ public class RouteService {
             throw new RuntimeException(e);
         }
     }
-    public Route updateRoute(int routeId, String pointOfDeparture, String destination, Integer carrierId,
-                             Integer tripDuration) {
+
+    public String updateRoute(int routeId, String pointOfDeparture, String destination, Integer carrierId,
+                              Integer tripDuration) {
         String checkQuery = "SELECT * FROM route WHERE id = ?";
         String updateQuery = "UPDATE route SET ";
 
@@ -111,20 +113,18 @@ public class RouteService {
                     }
                     if (tripDuration != null) {
                         updateStatement.setInt(parameterIndex++, tripDuration);
-                    }
-                    else {
+                    } else {
                         System.out.println("тут ноль");
                     }
                     updateStatement.setInt(parameterIndex, routeId);
 
-                    int rowsAffected = updateStatement.executeUpdate();
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return null; // Билет с указанным ID не найден или произошла ошибка
+        return "Параметры маршрута успешно изменены";
     }
-    }
+}
 

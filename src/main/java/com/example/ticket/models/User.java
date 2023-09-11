@@ -9,18 +9,13 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class User {
-    @Schema(description = "Идентификатор")
     private int id;
 
-    @Schema(description = "Полное имя пользователя")
     private String fullName;
 
-    @Schema(description = "Пароль")
     private String password;
 
-    @Schema(description = "Логин")
     private String login;
 
-    @Schema(description = "Роль")
     private Role role;
 }
